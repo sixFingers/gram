@@ -22,8 +22,10 @@ Meteor.startup(function() {
     console.log("user existing");
   }
 
-  codeMirror = CodeMirror(document.body, {
-    mode: "javascript"
+  codeMirror = CodeMirror(document.getElementById("main"), {
+    mode: "javascript", 
+    lineNumbers: true, 
+    theme: "monokai"
   });
 
   codeMirror.on("change", function(codemirror, change) {
