@@ -12,12 +12,13 @@ Deps.autorun(function() {
 });
 
 Meteor.startup(function() {
+  console.log(Meteor.user());
   codeMirror = CodeMirror(document.body, {
     mode: "javascript"
   });
 
   codeMirror.on("change", function(codemirror, change) {
     Session.set("document_content", codemirror.getValue());
-    Documents.update(Session.get("document_id"), {content: codemirror.getValue()});
+    Documents.update(Session.get("document_id"), {$set: {content: codemirror.getValue()}});
   });
 });
