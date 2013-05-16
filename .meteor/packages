@@ -5,3 +5,5 @@
 
 preserve-inputs
 accounts-base
+accounts-password
+random

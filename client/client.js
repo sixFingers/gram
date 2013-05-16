@@ -12,7 +12,16 @@ Deps.autorun(function() {
 });
 
 Meteor.startup(function() {
-  console.log(Meteor.user());
+  if(!Meteor.userId()) {
+    Accounts.createUser({
+      anonymous: 1, 
+      username: Random.id(), 
+      password: Random.id()
+    });
+  } else {
+    console.log("user existing");
+  }
+
   codeMirror = CodeMirror(document.body, {
     mode: "javascript"
   });
