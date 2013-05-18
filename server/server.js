@@ -29,11 +29,12 @@ Meteor.methods({
   createDocument: function() {
     var documentId = Documents.insert({});
     // Insert an update for document founder
-    Updates.insert({owner: this.userId, document_id: documentId, content: ""});
+    Updates.insert({owner: this.userId, document_id: documentId, update_data: {}});
     return documentId;
   }, 
-  createUpdate: function(documentId) {
-    var updateId = Updates.insert({owner: this.userId, document_id: documentId, content: ""});
+  createUpdate: function(documentId, updateData) {
+    updateData = updateData || {};
+    var updateId = Updates.insert({owner: this.userId, document_id: documentId, update_data: updateData});
     return updateId;
   }
 })
