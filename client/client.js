@@ -66,6 +66,15 @@ var WorkspaceView = Backbone.View.extend({
       theme: "monokai"
     });
 
+    // Store client owner codemirror document
+    Gram.mirrors[Meteor.userId()] = this.editors.owner.getDoc();
+
+    // If a saved version exists from previous session, restore it
+    if(localStorage.getItem("documentCache")) {
+      Gram.mirrors[Meteor.userId()].setValue(localStorage.getItem("documentCache"));
+      localStorage.removeItem("documentCache");
+    }
+
     this.editors.owner.on("change", function(codemirror, change) {
       if(Session.get("document_id")) {
         Meteor.call("createUpdate", Session.get("document_id"), change);
@@ -161,6 +170,8 @@ var recentUpdates = Updates.find().observeChanges({
         // Apply the change
         Gram.mirrors[change.owner].replaceRange(change.update_data.text[0], change.update_data.from, change.update_data.to);
       }
+    } else {
+      localStorage.setItem("documentCache", Gram.mirrors[Meteor.userId()].getValue());
     }
   }
 });
