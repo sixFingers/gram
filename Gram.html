@@ -1,12 +1,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Gram</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <!--link rel="stylesheet" href="/css/bootstrap-responsive.min.css"-->
+  <link rel="stylesheet" href="/css/codemirror.css">
+  <link rel="stylesheet" href="/css/codemirror-themes.css">
+  <link rel="stylesheet" href="/css/screen.css">
 </head>
 <body>
   <div class="navbar navbar-inverse navbar-static-top">
     <div class="navbar-inner">
-      <div class="container-fluid">
-        <ul class="nav">
+      <ul class="nav">
           <li>
             <a href="#" id="default" class="brand">Gram</a>
           </li>
@@ -15,28 +19,27 @@
           </li>
         </ul>
         {{> participants}}
-      </div>  
     </div>
   </div>
-  <div class="container-fluid">
-    <div id="main"></div>
+  <div id="document-main">
+    <div id="document-row">
+      <div id="owner">dsf</div>
+      <div id="divider"></div>
+      <div id="participant">
+        mate
+      </div>
+    </div>
   </div>
 </body>
 
 <template name="participants">
   <ul class="nav pull-right">
-    <li class="dropdown">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-        Participants
-        <b class="caret"></b>
+    {{#each participants}}
+    <li>
+      <a href="#" class="participant" rel="{{this}}">
+        <i class="icon-user icon-white"></i>
       </a>
-      <ul class="dropdown-menu">
-        {{#each participants}}
-        <li>
-          <a href="#">{{this}}</a>
-        </li>
-        {{/each}}
-      </ul>
     </li>
+    {{/each}}
   </ul>
 </template>

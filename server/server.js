@@ -22,7 +22,7 @@ Meteor.publish("participants", function(documentId) {
 });
 
 Meteor.publish("updates", function(documentId) {
-  return Updates.find({document_id: documentId});
+  return Updates.find({/*owner: {$ne: this.userId}, */document_id: documentId});
 });
 
 Meteor.methods({

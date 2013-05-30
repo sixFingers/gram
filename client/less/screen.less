@@ -1,0 +1,25 @@
+html, body {
+  height: 100%;
+}
+
+#document-main {
+  background: black;
+  display: table;
+  // border-spacing: 10px 0px;
+  width: 100%;
+
+  #document-row {
+    display: table-row;
+
+    div#owner,
+    div#participant {
+      display: table-cell;
+      width: 50%;
+      background: gray;
+    }
+
+    div#divider {
+      width: 15px;
+    }
+  }
+}

@@ -2,6 +2,7 @@ Session.set("participants", []);
 
 Gram = {
   router: null, 
+  view: null, 
   codeMirror: null, 
   participants: []
 }
@@ -12,7 +13,6 @@ Deps.autorun(function() {
     Meteor.subscribe("updates", document_id);
     var updates = Updates.find().fetch();
     if(updates.length > 0) {
-      // Gram.participants = updates.distinct("owner");
       Session.set("participants", updates.distinct("owner"));
       if(Session.get("participants").indexOf(Meteor.userId()) < 0) {
         Meteor.call("createUpdate", document_id);
@@ -34,10 +34,12 @@ var Workspace = Backbone.Router.extend({
   default: function() {
     Session.set("document_id", null);
     this.currentPage = "default";
+    Gram.view.setMode();
   }, 
   document: function(documentId) {
     this.currentPage = "version";
     Session.set("document_id", documentId);
+    Gram.view.setMode("pair");
   }
 });
 
@@ -49,7 +51,22 @@ var WorkspaceView = Backbone.View.extend({
   el: "body", 
   events: {
     "click #default": "default", 
-    "click #share": "shareDocument"
+    "click #share": "shareDocument", 
+    "click a.participant": "switchParticipant"
+  }, 
+  editors: {}, 
+  initialize: function() {
+    this.editors.owner = CodeMirror($("#owner")[0], {
+      mode: "javascript", 
+      lineNumbers: true, 
+      theme: "monokai"
+    });
+
+    this.editors.owner.on("change", function(codemirror, change) {
+      if(Session.get("document_id")) {
+        Meteor.call("createUpdate", Session.get("document_id"), change);
+      }
+    });
   }, 
   default: function(e) {
     e.preventDefault();
@@ -60,9 +77,30 @@ var WorkspaceView = Backbone.View.extend({
     if(!Session.get("document_id")) {
       Meteor.call("createDocument", function(error, documentId) {
         Session.set("document_id", documentId);
-        Gram.router.navigate(documentId);
+        Gram.router.navigate(documentId, {trigger: true});
       });
     }
+  }, 
+  setMode: function(mode) {
+    $("#divider, #participant").hide();
+    
+    if(this.editors.participant) {
+      $(this.editors.participant.getWrapperElement()).remove();
+      delete this.editors.participant;  
+    }
+    
+    if(mode == "pair") {
+      $("#divider, #participant").show();
+      this.editors.participant = CodeMirror($("#participant")[0], {
+        mode: "javascript", 
+        lineNumbers: true, 
+        readOnly: true, 
+        theme: "monokai"
+      });
+    }
+  }, 
+  switchParticipant: function() {
+
   }
 });
 
@@ -71,7 +109,7 @@ var WorkspaceView = Backbone.View.extend({
 =================================*/
 
 Template.participants.participants = function() {
-  return Session.get("participants");
+  return _.without(Session.get("participants"), Meteor.userId());
 };
 
 /*===============================
@@ -82,7 +120,7 @@ Meteor.startup(function() {
   // Routing
   function setup() {
     Gram.router = new Workspace();
-    view = new WorkspaceView();
+    Gram.view = new WorkspaceView();
     Backbone.history.start({pushState: true});
   }
   
@@ -102,19 +140,6 @@ Meteor.startup(function() {
   } else {
     setup();
   }
-
-  // Create/read a document
-  Gram.codeMirror = CodeMirror(document.getElementById("main"), {
-    mode: "javascript", 
-    lineNumbers: true, 
-    theme: "monokai"
-  });
-
-  Gram.codeMirror.on("change", function(codemirror, change) {
-    if(Session.get("document_id")) {
-      Meteor.call("createUpdate", Session.get("document_id"), change);
-    }
-  });
 });
 
 /*=========================================
@@ -124,7 +149,9 @@ Meteor.startup(function() {
 var recentUpdates = Updates.find().observeChanges({
   added: function(id, change) {
     if(change.owner != Meteor.userId()) {
-      console.log("New change", id, change);  
+      if(change.update_data.from && change.update_data.to && change.update_data.text) {
+        Gram.codeMirror.replaceRange(change.update_data.text[0], change.update_data.from, change.update_data.to);
+      }
     }
   }
 });
