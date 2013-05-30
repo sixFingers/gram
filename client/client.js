@@ -15,8 +15,14 @@ Deps.autorun(function() {
     var updates = Updates.find().fetch();
     if(updates.length > 0) {
       // Set participants list
-      Session.set("participants", updates.distinct("owner"));
+      var participants = updates.distinct("owner");
+      Session.set("participants", participants);
 
+      _.each(participants, function(participantId) {
+        // Create new Codemirror Doc for this change's owner, if needed
+        Gram.mirrors[participantId] = Gram.mirrors[participantId] || CodeMirror.Doc("", "javascript");  
+      });
+      
       // Ping the list to let others know we're connected
       if(Session.get("participants").indexOf(Meteor.userId()) < 0) {
         Meteor.call("createUpdate", document_id);
