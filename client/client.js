@@ -4,7 +4,8 @@ Gram = {
   router: null, 
   view: null, 
   codeMirror: null, 
-  participants: []
+  participants: [], 
+  mirrors: {}
 }
 
 Deps.autorun(function() {
@@ -13,7 +14,10 @@ Deps.autorun(function() {
     Meteor.subscribe("updates", document_id);
     var updates = Updates.find().fetch();
     if(updates.length > 0) {
+      // Set participants list
       Session.set("participants", updates.distinct("owner"));
+
+      // Ping the list to let others know we're connected
       if(Session.get("participants").indexOf(Meteor.userId()) < 0) {
         Meteor.call("createUpdate", document_id);
       }
@@ -99,8 +103,10 @@ var WorkspaceView = Backbone.View.extend({
       });
     }
   }, 
-  switchParticipant: function() {
-
+  switchParticipant: function(e) {
+    var pairId = $(e.currentTarget).attr("rel");
+    $("#participant .username span").text(pairId);
+    this.editors.participant.swapDoc(Gram.mirrors[pairId]);
   }
 });
 
@@ -150,7 +156,10 @@ var recentUpdates = Updates.find().observeChanges({
   added: function(id, change) {
     if(change.owner != Meteor.userId()) {
       if(change.update_data.from && change.update_data.to && change.update_data.text) {
-        Gram.codeMirror.replaceRange(change.update_data.text[0], change.update_data.from, change.update_data.to);
+        // Create new Codemirror Doc for this change's owner, if needed
+        Gram.mirrors[change.owner] = Gram.mirrors[change.owner] || CodeMirror.Doc("", "javascript");
+        // Apply the change
+        Gram.mirrors[change.owner].replaceRange(change.update_data.text[0], change.update_data.from, change.update_data.to);
       }
     }
   }
